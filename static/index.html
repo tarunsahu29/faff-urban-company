@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Urban Company — on-demand helper</title>
+<style>
+  :root{
+    --bg:#ffffff; --soft:#f6f6f6; --ink:#0f0f0f; --ink2:#3d3d3d; --muted:#727272;
+    --line:#e7e7e7; --btn:#0f0f0f; --btnh:#2b2b2b;
+    --ok:#0e8a45; --okbg:#e9f7ef; --warn:#8a5a00; --warnbg:#fbf2e0;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 30px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  header{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:50}
+  .bar{max-width:760px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .mark{width:30px;height:30px;border-radius:8px;background:#0f0f0f;color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .brand b{font-weight:800;letter-spacing:-.02em;font-size:17px}
+  .autharea{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13.5px}
+  .hi{font-weight:700}
+  .logout{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
+  .logout:hover{border-color:#0f0f0f}
+  .muted{color:var(--muted)}
+
+  .wrap{max-width:860px;margin:0 auto;padding:52px 22px 80px}
+  h1{font-size:30px;line-height:1.14;letter-spacing:-.025em;margin:0 0 8px;font-weight:800}
+  .sub{color:var(--ink2);margin:0 0 30px;font-size:16px}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:26px 26px 24px}
+  label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:var(--muted);margin:0 0 8px;text-transform:uppercase}
+  input,textarea{width:100%;display:block;box-sizing:border-box;background:#fff;border:1.5px solid var(--line);color:var(--ink);border-radius:12px;padding:15px 16px;font:inherit;font-size:15.5px;transition:border-color .15s,box-shadow .15s}
+  textarea{min-height:56px;resize:vertical}
+  input:focus,textarea:focus{outline:none;border-color:#0f0f0f;box-shadow:0 0 0 3px rgba(15,15,15,.06)}
+  input::placeholder,textarea::placeholder{color:#b3b3b3}
+  .field{position:relative}
+  .field .ic{position:absolute;left:15px;top:41px;font-size:16px;opacity:.7;pointer-events:none}
+  .field.has-ic input{padding-left:42px}
+  .fieldrow{display:flex;gap:16px;flex-wrap:wrap}
+  .fieldrow .field{flex:1;min-width:220px}
+  .btn{background:var(--btn);color:#fff;border:0;border-radius:12px;padding:14px 22px;font:inherit;font-weight:700;cursor:pointer;transition:background .15s}
+  .btn:hover{background:var(--btnh)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.block{width:100%;margin-top:14px}
+  .note{margin-top:12px;font-size:13px;color:var(--ink2)}
+  .hidden{display:none}
+
+  .results{margin-top:20px;display:grid;gap:16px}
+  .rcard{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .rhead{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .rhead h3{margin:0;font-size:15px;font-weight:800}
+  .status{margin-left:auto;font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:999px}
+  .s-ok{background:var(--okbg);color:var(--ok)} .s-warn{background:var(--warnbg);color:var(--warn)}
+  .rbody{padding:16px 20px}
+  .kv{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:14.5px}
+  .kv:last-child{border-bottom:0}
+  .kv .k{width:120px;color:var(--muted);flex:none}
+  .pill{display:inline-block;background:var(--soft);color:var(--ink2);border:1px solid var(--line);border-radius:7px;padding:2px 9px;font-size:12.5px;font-weight:600;margin:2px 4px 2px 0}
+  .slot{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;margin:8px 0}
+  .slot.primary{border-color:var(--ok);background:var(--okbg)}
+  .slot .t{font-weight:700} .slot .ref{margin-left:auto;font-size:12px;color:var(--muted)}
+  .notes{background:var(--soft);border-top:1px solid var(--line);padding:12px 20px;font-size:13px;color:var(--ink2)}
+  .spinner{width:15px;height:15px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><span class="mark">UC</span><b>Urban Company</b></div>
+    <div class="autharea" id="autharea">
+      <span class="muted" id="authtext">checking…</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Get an instant on-demand helper.</h1>
+  <p class="sub">Say what you need, where, and when — the agent reaches a booking-ready slot.</p>
+
+  <!-- Sign in (shown only when logged out) -->
+  <div class="panel" id="loginpanel">
+    <button class="btn block" id="signin" onclick="browserLogin()">Sign in with Urban Company</button>
+    <div class="note" id="loginnote">
+      Your Google Chrome opens on Urban Company’s login and jumps straight to the phone
+      screen — clear the “verify you’re human” check and enter the OTP. The session is
+      captured automatically.
+    </div>
+  </div>
+
+  <!-- Booking request (shown only when logged in) -->
+  <div class="panel hidden" id="askpanel">
+    <div class="field has-ic" style="margin-bottom:16px">
+      <label>What do you need?</label><span class="ic">🛠️</span>
+      <input id="svc" placeholder="deep clean my single bathroom">
+    </div>
+    <div class="field has-ic" style="margin-bottom:16px">
+      <label>Where? <span style="text-transform:none;font-weight:500;color:#b3b3b3">— start with your flat / house no.</span></label><span class="ic">📍</span>
+      <input id="addr" placeholder="606, Stellar Heights Coliving, Gachibowli, Hyderabad">
+    </div>
+    <div class="field has-ic" style="margin-bottom:20px">
+      <label>When?</label><span class="ic">🕐</span>
+      <input id="tim" placeholder="4pm on 15th July   ·   tomorrow evening   ·   ASAP">
+    </div>
+    <button class="btn block" id="go" onclick="run()" style="margin-top:0;font-size:15.5px;padding:15px">Find a booking-ready slot →</button>
+  </div>
+
+  <div class="results" id="out"></div>
+</div>
+
+<script>
+function val(id){ return (document.getElementById(id).value||'').trim(); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let _pollTimer=null;
+let _lastResp=null;   // last /slots response, so a slot switch can patch + re-render fast
+let _lastForm=null;   // {svc,addr,tim} that produced _lastResp — used to detect field drift
+async function refreshAuth(){
+  try{
+    const s=await (await fetch('/auth/status')).json();
+    const area=document.getElementById('autharea');
+    if(s.authenticated){
+      area.innerHTML='<span class="hi">Hi, '+esc(s.greeting||'there')+' 👋</span>'+
+                     '<button class="logout" onclick="logout()">Log out</button>';
+      document.getElementById('loginpanel').classList.add('hidden');
+      document.getElementById('askpanel').classList.remove('hidden');
+      if(_pollTimer){ clearInterval(_pollTimer); _pollTimer=null; }
+    }else{
+      area.innerHTML='<span class="muted">not signed in</span>';
+      document.getElementById('loginpanel').classList.remove('hidden');
+      document.getElementById('askpanel').classList.add('hidden');
+      const b=document.getElementById('signin'); if(b){ b.disabled=false; b.textContent='Sign in with Urban Company'; }
+    }
+    return s;
+  }catch(e){ return null; }
+}
+async function browserLogin(){
+  const note=document.getElementById('loginnote');
+  const b=document.getElementById('signin'); b.disabled=true; b.innerHTML='<span class="spinner"></span>Opening Urban Company login…';
+  try{
+    const r=await (await fetch('/auth/browser-login',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).json();
+    if(!r.ok){ note.style.color='var(--warn)'; note.textContent=r.error||'Could not start login.'; b.disabled=false; b.textContent='Sign in with Urban Company'; return; }
+    if(r.already){ await refreshAuth(); return; }
+    note.style.color='var(--ink2)'; note.textContent='Chrome opened — verify you’re human and enter the OTP there…';
+    if(_pollTimer) clearInterval(_pollTimer);
+    _pollTimer=setInterval(async ()=>{
+      const s=await refreshAuth(); if(!s) return;
+      if(s.login && s.login.status==='error'){ note.style.color='var(--warn)'; note.textContent=s.login.message||'Login failed.'; clearInterval(_pollTimer); _pollTimer=null; const bb=document.getElementById('signin'); if(bb){bb.disabled=false; bb.textContent='Try again';} }
+      else if(!s.authenticated && s.login && s.login.message){ note.textContent=s.login.message; }
+    },2000);
+  }catch(e){ note.textContent='Error: '+esc(e); b.disabled=false; b.textContent='Sign in with Urban Company'; }
+}
+async function logout(){
+  try{ await fetch('/auth/logout',{method:'POST'}); }catch(e){}
+  document.getElementById('out').innerHTML='';
+  await refreshAuth();
+}
+refreshAuth();
+
+async function run(slotRef){
+  const btn=document.getElementById('go'); btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>'+(slotRef?'Selecting':'Working');
+  const out=document.getElementById('out');
+  if(!slotRef) out.innerHTML='';  // keep the current view visible while re-selecting
+  try{
+    const r=await fetch('/slots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service_need:val('svc'),location_text:val('addr'),time_text:val('tim'),slot_ref:slotRef||null})});
+    render(await r.json());
+    // The full path re-reads the live fields, so the rendered card now matches them —
+    // snapshot them as the authoritative form behind _lastResp / the cached draft.
+    _lastForm={svc:val('svc'),addr:val('addr'),tim:val('tim')};
+    if(slotRef){  // flash the now-selected slot so the change is unmistakable
+      const sel=document.querySelector('#out .slot.primary');
+      if(sel){ sel.style.transition='background .35s'; sel.style.background='rgba(34,197,94,.20)';
+               setTimeout(()=>{ sel.style.background=''; },1300); sel.scrollIntoView({block:'center',behavior:'smooth'}); }
+    }
+  }catch(e){ out.innerHTML='<div class="rcard"><div class="rbody">Error: '+esc(e)+'</div></div>'; }
+  btn.disabled=false; btn.textContent='Find a booking-ready slot';
+}
+function render(d){
+  _lastResp=d;
+  const p=d.parsed,s=d.service,l=d.location;
+  const ok=d.status==='booking_ready';
+  const statusText={booking_ready:'Booking-ready',no_slot:'No slot found',not_serviceable:'Not serviceable',needs_capture:'Awaiting endpoint'}[d.status]||d.status;
+  const time=p.time_pref.mode==='asap'?'ASAP (earliest)':((p.time_pref.target_date||'')+(p.time_pref.window_start_hour!=null?' · '+hh(p.time_pref.window_start_hour)+'–'+hh(p.time_pref.window_end_hour):''));
+  let html='<div class="rcard"><div class="rhead"><h3>Your request</h3><span class="status '+(ok?'s-ok':'s-warn')+'">'+esc(statusText)+'</span></div><div class="rbody">';
+  html+=kv('Service',esc(s.name)+' <span class="pill">'+esc(s.category||'?')+'</span>');
+  if(d.package) html+=kv('Package', esc(d.package.name||'')+(d.package.price?' <span class="pill">₹'+d.package.price+'</span>':'')+(d.package.duration_mins?' <span class="pill">'+d.package.duration_mins+' mins</span>':''));
+  html+=kv('Location', esc(l.display_name||l.query||'—'));
+  if(d.address_label) html+=kv('Booking address', esc(d.address_label));
+  html+=kv('When', esc(time));
+  if(d.draft_order_id) html+=kv('Cart', '<span class="pill">added to Urban Company cart</span>');
+  html+='</div>';
+  if(d.booking_ready_slot){
+    const b=d.booking_ready_slot;
+    const conf = d.slot_confirmed===true ? ' <span class="pill" style="color:var(--ok)">confirmed available</span>' : (d.slot_confirmed===false ? ' <span class="pill" style="color:var(--warn)">just filled</span>' : '');
+    // "Selected" only when the slot is actually locked into the cart (slot_set);
+    // otherwise it's merely picked/available — never claim more than is true.
+    const slotHead = d.slot_set ? '✅ Selected slot' : '🕐 Picked slot (not locked into cart yet)';
+    html+='<div class="rbody" style="border-top:1px solid var(--line)"><h3 style="margin:0 0 8px;font-size:15px">'+slotHead+conf+'</h3>';
+    html+='<div class="slot primary"><span class="t">'+esc(b.label)+'</span><span class="ref">ref '+esc(b.slot_ref)+'</span></div>';
+    // Alternatives — ALWAYS shown when present. Each is clickable to book THAT exact
+    // slot (the server re-configures the cart on the chosen slot_ref).
+    const amt=d.payable_amount||0;
+    if((d.alternatives||[]).length){
+      const lbl = d.requested_time_available===false
+        ? 'Your requested time isn\'t available — nearby times (click to select):'
+        : 'Other available times (click to select):';
+      html+='<div class="k" style="margin:10px 0 5px;font-size:12.5px'+(d.requested_time_available===false?';color:var(--warn)':'')+'">'+esc(lbl)+'</div>';
+      html+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+      (d.alternatives||[]).slice(0,6).forEach(a=>
+        html+='<span class="pill" data-select data-ref="'+esc(a.slot_ref)+'" title="Select this time (no booking yet)" style="cursor:pointer">'+esc(a.label)+'</span>');
+      html+='</div>';
+    }
+    // What's configured on the UC cart (the real selected state).
+    html+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px">'
+        + '<span class="pill" style="color:var(--ok);border-color:var(--ok)">service ✓</span>'
+        + '<span class="pill" style="'+(d.address_set?'color:var(--ok);border-color:var(--ok)':'color:var(--warn);border-color:var(--warn)')+'">address '+(d.address_set?'✓':'—')+'</span>'
+        + '<span class="pill" style="'+(d.slot_set?'color:var(--ok);border-color:var(--ok)':'color:var(--warn);border-color:var(--warn)')+'">slot '+(d.slot_set?'✓':'—')+'</span></div>';
+    // Real booking (Cash on Delivery) — triple-guarded server-side. Books the EXACT
+    // shown slot via its slot_ref (not a re-pick).
+    if(d.address_set && d.slot_set && d.payable_amount){
+      html+='<button class="btn" data-book data-ref="'+esc(b.slot_ref)+'" data-label="'+esc(b.label)+'" data-amt="'+d.payable_amount+'" style="margin-top:14px">Book · ₹'+d.payable_amount+' cash on service</button>';
+      html+='<div id="bookresult" style="margin-top:8px;font-size:13px"></div>';
+    } else if(d.status==='booking_ready'){
+      html+='<div style="margin-top:10px;font-size:13px;color:var(--warn)">'+(!d.address_set?'Address not set on cart. ':'')+(!d.slot_set?'Slot not selected. ':'')+'</div>';
+    }
+    html+='</div>';
+  }
+  if(d.notes&&d.notes.length){
+    html+='<div class="notes">'+d.notes.map(n=>esc(n)).join('<br>')+'</div>';
+  }
+  html+='</div>';
+  document.getElementById('out').innerHTML=html;
+  // Delegated wiring (so slot labels can't break inline JS):
+  //  · [data-select] re-configures the cart on that slot — NO order placed
+  //  · [data-book]   places the real COD order for the shown slot
+  document.querySelectorAll('#out [data-select]').forEach(el=>{
+    el.addEventListener('click',()=> selectSlot(el.dataset.ref));
+  });
+  document.querySelectorAll('#out [data-book]').forEach(el=>{
+    el.addEventListener('click',()=> bookNow(Number(el.dataset.amt||0), el.dataset.ref||null, el.dataset.label||''));
+  });
+}
+// Switch the selected slot FAST: reuse the already-configured draft (only re-run
+// updateSlot server-side) instead of the whole ~10-call journey. Shows an immediate
+// spinner on the clicked chip, then patches + re-renders. No order is placed — this
+// is how you verify an alternative time actually gets selected. Falls back to the
+// full path (run) if there's no cached draft or the ref went stale.
+async function selectSlot(ref){
+  if(!_lastResp) return run(ref);
+  // If any field changed since the search, the cached draft is for a DIFFERENT
+  // request — fall back to the full path so the card + cache re-sync to the live
+  // fields (otherwise the preview could show address A while /book commits address B).
+  if(!_lastForm||val('svc')!==_lastForm.svc||val('addr')!==_lastForm.addr||val('tim')!==_lastForm.tim) return run(ref);
+  const all=[_lastResp.booking_ready_slot, ...(_lastResp.alternatives||[])].filter(Boolean);
+  const picked=all.find(x=>x.slot_ref===ref);
+  if(!picked) return run(ref);
+  // instant feedback: spinner on the clicked chip, dim + lock the rest
+  document.querySelectorAll('#out [data-select]').forEach(el=>{
+    el.style.pointerEvents='none';
+    if(el.dataset.ref===ref){ el.innerHTML='<span class="spinner"></span>selecting…'; }
+    else { el.style.opacity='.45'; }
+  });
+  try{
+    const r=await (await fetch('/select_slot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slot_ref:ref, draft_order_id:(_lastResp&&_lastResp.draft_order_id)||null})})).json();
+    if(!r || !r.ok) return run(ref);   // no cached draft / stale ref / moved cache -> full reconfigure
+    _lastResp.booking_ready_slot=picked;
+    _lastResp.alternatives=all.filter(x=>x.slot_ref!==ref);
+    _lastResp.slot_set=r.slot_set;
+    _lastResp.payable_amount=r.payable_amount;
+    _lastResp.slot_confirmed=r.available;
+    _lastResp.requested_time_available=true;   // user explicitly chose this time
+    _lastResp.notes=(_lastResp.notes||[]).filter(n=>!/requested time|unavailable|just filled/i.test(n));
+    render(_lastResp);
+    const sel=document.querySelector('#out .slot.primary');
+    if(sel){ sel.style.transition='background .35s'; sel.style.background='rgba(34,197,94,.20)';
+             setTimeout(()=>{ sel.style.background=''; },1300); sel.scrollIntoView({block:'center',behavior:'smooth'}); }
+  }catch(e){ return run(ref); }
+}
+async function bookNow(amount, slotRef, label){
+  // Guard: if the fields changed since the search, the card no longer matches what
+  // /book would commit (it re-reads the live fields). Force a refresh first.
+  if(_lastForm && (val('svc')!==_lastForm.svc||val('addr')!==_lastForm.addr||val('tim')!==_lastForm.tim)){
+    alert('Your inputs changed since the last search.\\nClick “Find a booking-ready slot” to refresh, then Book — so you book exactly what’s shown.');
+    return;
+  }
+  if(!confirm('Place a REAL Urban Company booking'+(label?' for '+label:'')+(val('addr')?' at '+val('addr'):'')+' · ₹'+amount+' (Cash on Delivery)?\\nA professional will be scheduled. You can cancel from Urban Company → Bookings.')) return;
+  let el=document.getElementById('bookresult');
+  if(!el){ el=document.createElement('div'); el.id='bookresult'; el.style.cssText='margin:10px 0;font-size:13px'; document.getElementById('out').appendChild(el); }
+  el.style.color='var(--ink2)'; el.textContent='Configuring cart & placing order…';
+  try{
+    const r=await (await fetch('/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service_need:val('svc'),location_text:val('addr'),time_text:val('tim'),slot_ref:slotRef||null,confirm:true})})).json();
+    if(r.ok){ el.style.color='var(--ok)'; el.innerHTML='✅ Booked (Cash on Delivery): '+esc(r.service||'')+' · '+esc(r.slot||'')+' · ₹'+esc(r.amount||'')+(r.order_id?' · order '+esc(r.order_id):'')+'<br>'+esc(r.note||''); }
+    else {
+      // Structured, plain-language failure card (headline · why · what to do · code).
+      el.style.color='';
+      let h='<div style="border:1px solid var(--warn);border-radius:10px;padding:12px 14px;margin-top:4px">';
+      h+='<div style="font-weight:650;color:var(--warn);font-size:13.5px">⚠ '+esc(r.error||'Booking couldn\'t be placed')+'</div>';
+      if(r.why) h+='<div style="margin-top:7px;font-size:12.5px;color:var(--ink2);line-height:1.5">'+esc(r.why)+'</div>';
+      if(r.next_step) h+='<div style="margin-top:7px;font-size:12.5px;line-height:1.5">👉 '+esc(r.next_step)+'</div>';
+      if(r.reason_code) h+='<div style="margin-top:8px;font-size:10.5px;color:var(--ink2);opacity:.65;font-family:ui-monospace,monospace">code: '+esc(r.reason_code)+(r.cart_ready?' · cart was order-ready':'')+'</div>';
+      h+='</div>';
+      el.innerHTML=h;
+    }
+  }catch(e){ el.textContent='Error: '+esc(e); }
+}
+function kv(k,v){ return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
+function hh(h){ if(h==null)return''; const ap=h<12?'AM':'PM'; let x=h%12; if(x===0)x=12; return x+' '+ap; }
+</script>
+</body>
+</html>

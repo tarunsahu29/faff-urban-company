@@ -1,0 +1,30 @@
+# secrets
+.env
+*.env
+!.env.example
+.uc_device_id
+.uc_browser_profile/
+.uc_chrome_profile/
+.uc_gemini_model
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# captures may contain session tokens / PII — never commit real ones
+captures/*.json
+captures/*.har
+captures/*.curl
+!captures/README.md
+!captures/*.sample.json
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# agent / session data (Claude Code local state — not project code)
+.claude/
