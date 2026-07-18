@@ -130,7 +130,14 @@ async function refreshAuth(){
       area.innerHTML='<span class="muted">not signed in</span>';
       document.getElementById('loginpanel').classList.remove('hidden');
       document.getElementById('askpanel').classList.add('hidden');
-      const b=document.getElementById('signin'); if(b){ b.disabled=false; b.textContent='Sign in with Urban Company'; }
+      // Keep Sign-in disabled while a login is already in progress (server-tracked),
+      // so a second click can't kick off another popup. Re-enable only when idle/errored.
+      const b=document.getElementById('signin');
+      const running = s.login && s.login.status==='running';
+      if(b){
+        if(running){ b.disabled=true; b.innerHTML='<span class="spinner"></span>Signing in…'; }
+        else { b.disabled=false; b.textContent='Sign in with Urban Company'; }
+      }
     }
     return s;
   }catch(e){ return null; }
